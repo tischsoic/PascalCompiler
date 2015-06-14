@@ -5,6 +5,7 @@ import java_cup.runtime.*;
 
 %%
 
+%cup
 %public
 %type Symbol
 %char
