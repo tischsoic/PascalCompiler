@@ -1,0 +1,671 @@
+package grammar;
+
+import java.util.*;
+import java.io.*;
+import java_cup.runtime.*;
+
+parser code
+	{:
+	private Yylex lexer;
+	private File file;
+
+	public parser( File file ) {
+		this();
+		this.file = file;
+		try {
+			lexer = new Yylex( new FileReader( file ) );
+			}
+		catch ( IOException exception ) {
+			throw new Error( "Unable to open file \"" + file + "\"" );
+			}
+		}
+
+	public String terminal_name( int id ) {
+		return sym.terminal_name( id );
+		}
+
+	public String non_terminal_name( int id ) {
+		return sym.non_terminal_name( id );
+		}
+
+	public String rule_name( int id ) {
+		return sym.rule_name( id );
+		}
+
+	public void report_error( String message, Object info ) {
+		System.err.println( file + " ( " + lexer.lineNumber() + " ): " + message );
+		try {
+			if ( info instanceof Symbol ) {
+				Symbol symbol = ( Symbol ) info;
+				printText( symbol.left, symbol.right );
+				}
+			}
+		catch ( IOException e ) {
+			}
+		}
+
+	private void printText( int left, int right ) throws IOException {
+		Reader sourceReader = new FileReader( file );
+		int veryLeft = Math.max( left - 50, 0 ),
+			veryRight = Math.min( right + 20, 
+				( int ) file.length() );
+		char[] text = new char[ veryRight - veryLeft ];
+		char[] underline = new char[ veryRight - veryLeft ];
+		sourceReader.skip( veryLeft );
+		sourceReader.read( text );
+		for ( int i = 0; i < text.length; i++ ) {
+			if ( text[ i ] < ' ' ) {
+				text[ i ] = '|';
+				underline[ i ] = '|';
+				}
+			else
+				underline[ i ] = ' ';
+			if ( left <= veryLeft + i && veryLeft + i < right )
+				underline[ i ] = '^';
+			}
+		printLine( text );
+		printLine( underline );
+		}
+
+	private static void printLine( char[] text ) {
+		for ( int i = 0; i < text.length; i++ )
+			System.err.print( text[ i ] );
+		System.err.println();
+		}
+
+	public void syntax_error( Symbol currToken ) {
+		report_error( "Syntax Error", currToken );
+		}
+	:};
+
+scan with
+	{:
+	return  lexer.yylex();
+	:};
+
+terminal 
+	AND, ARRAY, BEGIN, CASE, CONST, DIV, DO, DOWNTO, ELSE,
+	END, FILE, FOR, FUNCTION, GOTO, IF, IN, LABEL, MOD, 
+	NIL, NOT, OF, OR, PACKED, PROCEDURE, PROGRAM, RECORD, REPEAT,
+	SET, THEN, TO, TYPE, UNTIL, VAR, WHILE, WITH,
+	
+	ASSIGN, PLUS, MINUS, TIMES, DIVIDE, EQ, NE, LT, GT, LE, GE,
+	DOT, LEFT, RIGHT, COMMA, SEMICOLON, COLON, DOTDOT, LEFTSQ, RIGHTSQ, PTR, 
+	IDENT, BOOLCONST, INTCONST, REALCONST, CHARCONST, STRINGCONST;
+terminal
+	READ, READLN, WRITE, WRITELN;
+nonterminal
+	Program,
+	ProgramHeading,
+	Block,
+	LabelDeclOpt,
+	LabelDecl,
+	LabelDeclrList,
+	LabelDeclr,
+	ConstantDeclOpt,
+	ConstantDecl,
+	ConstDeclrList,
+	ConstDeclr,
+	ConstantList,
+	Constant,
+	TypeDeclOpt,
+	TypeDecl,
+	TypeDeclrList,
+	TypeDeclr,
+	Type,
+	SimpleType,
+	ScalarType,
+	SubrangeType,
+	StructuredType,
+	UnpackedType,
+	ArrayType,
+	SimpleTypeList,
+	RecordType,
+	FieldList,
+	FieldDeclList,
+	FieldDecl,
+	VariantFields,
+	VariantList,
+	Variant,
+	SetType,
+	FileType,
+	PointerType,
+	VarDeclOpt,
+	VarDecl,
+	VarDeclrList,
+	VarDeclr,
+	IdentList,
+	ProcDeclrList,
+	ProcDeclr,
+	FuncDeclr,
+	ProcHeader,
+	FuncHeader,
+	FormalParamDeclList,
+	FormalParamDecl,
+	Stmt,
+	UnlabelledStmt,
+	SimpleStmt,
+	StructuredStmt,
+	Variable,
+	WriteExprList,
+	ExprList,
+	WriteExpr,
+	Expr,
+	SimpleExpr,
+	Term,
+	Factor,
+	Invocation,
+	Set,
+	ElementList,
+	Element,
+	CompoundStmt,
+	StmtList,
+	ConditionalStmt,
+	CaseStmtList,
+	CaseStmt,
+	LoopStmt,
+	WithStmt,
+	VariableList,
+	StmtWithElse,
+	ConditionalStmtWithElse;
+
+precedence left ELSE;
+
+start with Program;
+
+Program::=
+		ProgramHeading Block DOT
+	;
+
+ProgramHeading::=
+		PROGRAM IDENT LEFT IdentList RIGHT SEMICOLON
+	;
+
+Block::=
+		LabelDeclOpt
+		ConstantDeclOpt
+		TypeDeclOpt
+		VarDeclOpt
+		ProcDeclrList
+		CompoundStmt
+	;
+
+LabelDeclOpt::=
+		/* Empty */
+	|
+		LabelDecl
+	;
+
+LabelDecl::=
+		LABEL LabelDeclrList SEMICOLON
+	;
+
+LabelDeclrList::=
+		LabelDeclr
+	|
+		LabelDeclrList COMMA LabelDeclr
+	;
+
+LabelDeclr::=
+		INTCONST
+	;
+	
+ConstantDeclOpt::=
+		/* Empty */
+	|
+		ConstantDecl
+	;
+
+ConstantDecl::=
+		CONST ConstDeclrList SEMICOLON
+	;
+
+ConstDeclrList::=
+		ConstDeclr
+	|
+		ConstDeclrList COMMA ConstDeclr
+	;
+
+ConstDeclr::=
+		IDENT EQ Constant
+	;
+
+ConstantList::=
+		Constant
+	|
+		ConstantList COMMA Constant
+	;
+
+Constant::=
+		INTCONST
+	|
+		PLUS INTCONST
+	|
+		MINUS INTCONST
+	|
+		REALCONST
+	|
+		PLUS REALCONST
+	|
+		MINUS REALCONST
+	|
+		IDENT
+	|
+		PLUS IDENT
+	|
+		MINUS IDENT
+	|
+		STRINGCONST
+	;
+
+TypeDeclOpt::=
+		/* Empty */
+	|
+		TypeDecl
+	;
+
+TypeDecl::=
+		TYPE TypeDeclrList SEMICOLON
+	;
+
+TypeDeclrList::=
+		TypeDeclr
+	|
+		TypeDeclrList SEMICOLON TypeDeclr
+	;
+
+TypeDeclr::=
+		IDENT EQ Type
+	;
+
+Type::=
+		SimpleType
+	|
+		StructuredType
+	|
+		PointerType
+	;
+	
+SimpleType::=
+		IDENT
+	|
+		ScalarType
+	|
+		SubrangeType
+	;
+
+ScalarType::=
+		LEFT IdentList RIGHT
+	;
+
+SubrangeType::=
+		Constant DOTDOT Constant
+	;
+
+StructuredType::=
+		UnpackedType
+	|
+		PACKED UnpackedType
+	;
+
+UnpackedType::=
+		ArrayType
+	|
+		RecordType
+	|
+		SetType
+	|
+		FileType
+	;
+
+ArrayType::=
+		ARRAY LEFTSQ SimpleTypeList RIGHTSQ OF Type
+	;
+
+SimpleTypeList::=
+		SimpleType
+	|
+		SimpleTypeList COMMA SimpleType
+	;
+
+RecordType::=
+		RECORD FieldList END
+	;
+
+FieldList::=
+		FieldDeclList
+	|
+		FieldDeclList SEMICOLON VariantFields
+	;
+	
+FieldDeclList::=
+		/* Empty */
+	|
+		FieldDeclList SEMICOLON FieldDecl
+	;
+
+FieldDecl::=
+		/* Empty */
+	|
+		IdentList COLON Type
+	;
+
+VariantFields::=
+		CASE IDENT COLON IDENT OF VariantList
+	|
+		CASE IDENT OF VariantList
+	;
+
+VariantList::=
+		Variant
+	|
+		VariantList SEMICOLON Variant
+	;
+
+Variant::=
+		/* Empty */
+	|
+		ConstantList COLON LEFT FieldList RIGHT
+	;
+
+SetType::=
+		SET OF SimpleType
+	;
+	
+FileType::=
+		FILE OF Type
+	;
+	
+PointerType::=
+		PTR IDENT
+	;
+
+VarDeclOpt::=
+		/* Empty */
+	|
+		VarDecl
+	;
+
+VarDecl::=
+		VAR VarDeclrList SEMICOLON
+	;
+
+VarDeclrList::=
+		/* Empty */
+	|
+		VarDeclrList SEMICOLON VarDeclr
+	;
+
+VarDeclr::=
+		IdentList COLON Type
+	;
+
+IdentList::=
+		/* Empty */
+	|
+		IdentList COMMA IDENT
+	;
+
+ProcDeclrList::=
+		/* Empty */
+	|
+		ProcDeclrList ProcDeclr SEMICOLON
+	|
+		ProcDeclrList FuncDeclr SEMICOLON
+	;
+
+ProcDeclr::=
+		ProcHeader Block
+	;
+
+FuncDeclr::=
+		FuncHeader Block
+	;
+
+ProcHeader::=
+		PROCEDURE IDENT SEMICOLON
+	|
+		PROCEDURE IDENT LEFT FormalParamDeclList RIGHT SEMICOLON
+	;
+
+FuncHeader::=
+		FUNCTION IDENT COLON IDENT SEMICOLON
+	|
+		FUNCTION IDENT LEFT FormalParamDeclList RIGHT COLON IDENT SEMICOLON
+	;
+
+FormalParamDeclList::=
+		FormalParamDecl
+	|
+		FormalParamDeclList SEMICOLON FormalParamDecl
+	;
+
+FormalParamDecl::=
+		VAR IdentList COLON Type
+	|
+		IdentList COLON Type
+	|
+		FUNCTION IdentList COLON Type
+	|
+		PROCEDURE IdentList
+	;
+
+Stmt::=
+		UnlabelledStmt
+	|
+		INTCONST COLON UnlabelledStmt
+	;
+
+UnlabelledStmt::=
+		SimpleStmt
+	|
+		StructuredStmt
+	;
+
+SimpleStmt::=
+		Variable ASSIGN Expr
+	|
+		Invocation
+	|
+		WRITE LEFT WriteExprList RIGHT
+	|
+		WRITELN LEFT WriteExprList RIGHT
+	|
+		IDENT
+	|
+		GOTO INTCONST
+	|
+		/* Empty */
+	;
+
+StructuredStmt::=
+		CompoundStmt
+	|
+		ConditionalStmt
+	|
+		LoopStmt
+	|
+		WithStmt
+	;
+
+Variable::=
+		IDENT
+	|
+		Variable LEFTSQ ExprList RIGHTSQ
+	|
+		Variable DOT IDENT
+	|
+		Variable PTR
+	;
+
+WriteExprList::=
+		WriteExpr
+	|
+		WriteExprList COMMA WriteExpr
+	;
+
+WriteExpr::=
+		Expr
+	|
+		Expr COLON Expr
+	|
+		Expr COLON Expr COLON Expr
+	;
+	
+ExprList::=
+		Expr
+	|
+		ExprList COMMA Expr
+	;
+	
+Expr::=
+		SimpleExpr
+	|
+		SimpleExpr EQ SimpleExpr
+	|
+		SimpleExpr NE SimpleExpr
+	|
+		SimpleExpr LT SimpleExpr
+	|
+		SimpleExpr LE SimpleExpr
+	|
+		SimpleExpr GT SimpleExpr
+	|
+		SimpleExpr GE SimpleExpr
+	|
+		SimpleExpr IN SimpleExpr
+	;
+
+SimpleExpr::=
+		Term
+	|
+		PLUS Term
+	|
+		MINUS Term
+	|
+		SimpleExpr PLUS Term
+	|
+		SimpleExpr MINUS Term
+	|
+		SimpleExpr OR Term
+	;
+
+Term::=
+		Factor
+	|
+		Term TIMES Factor
+	|
+		Term DIVIDE Factor
+	|
+		Term DIV Factor
+	|
+		Term MOD Factor
+	|
+		Term AND Factor
+	;
+
+Factor::=
+		Variable
+	|
+		BOOLCONST
+	|
+		INTCONST
+	|
+		REALCONST
+	|
+		CHARCONST
+	|
+		STRINGCONST
+	|
+		NIL
+	|
+		LEFT Expr RIGHT
+	|
+		Invocation
+	|
+		Set
+	|
+		NOT Factor
+	;
+
+Invocation::=
+		IDENT LEFT ExprList RIGHT
+	;
+
+Set::=
+		LEFTSQ ElementList RIGHTSQ
+	|
+		LEFTSQ RIGHTSQ
+	;
+
+ElementList::=
+		Element
+	|
+		ElementList COMMA Element
+	;
+
+Element::=
+		Expr
+	|
+		Expr DOTDOT Expr
+	;
+
+CompoundStmt::=
+		BEGIN StmtList END
+	;
+
+StmtList::=
+		Stmt
+	|
+		StmtList SEMICOLON Stmt
+	;
+
+StmtWithElse ::= 
+		ConditionalStmtWithElse
+	;
+
+ConditionalStmt::=
+		IF Expr THEN Stmt
+	|
+		IF Expr THEN ConditionalStmtWithElse ELSE Stmt
+	|
+		CASE Expr OF CaseStmtList END
+	;
+
+ConditionalStmtWithElse ::=
+		IF Expr THEN StmtWithElse ELSE StmtWithElse
+	;
+
+CaseStmtList::=
+		CaseStmt
+	|
+		CaseStmtList SEMICOLON CaseStmt
+	;
+
+CaseStmt::=
+		/* empty */
+	|
+		ConstantList COLON Stmt
+	;
+
+LoopStmt::=
+		WHILE Expr DO Stmt
+	|
+		REPEAT StmtList UNTIL Expr
+	|
+		FOR IDENT ASSIGN Expr TO Expr DO Stmt
+	|
+		FOR IDENT ASSIGN Expr DOWNTO Expr DO Stmt
+	;
+
+WithStmt::=
+		WITH VariableList DO Stmt
+	;
+
+VariableList::=
+		Variable
+	|
+		VariableList COMMA Variable
+	;
+
+
