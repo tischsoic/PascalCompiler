@@ -1,0 +1,32 @@
+apply plugin: 'java'
+apply plugin:'application'
+
+sourceCompatibility = 1.8
+version = '1.0'
+mainClassName = 'main.java.Main'
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'Main'
+    }
+}
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Pascal compiler',
+                'Implementation-Version': version,
+                'Main-Class': 'Main'
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile group: 'nz.ac.waikato.cms.weka.thirdparty', name: 'java-cup-11b-runtime', version: '2015.03.26'
+}
