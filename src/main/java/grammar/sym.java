@@ -5,8 +5,8 @@
 
 package grammar;
 
-/** CUP generated class containing symbol constants. */
-public class sym {
+/** CUP generated interface containing symbol constants. */
+public interface sym {
   /* terminals */
   public static final int DIVIDE = 41;
   public static final int FUNCTION = 14;
@@ -52,12 +52,12 @@ public class sym {
   public static final int PROGRAM = 26;
   public static final int MOD = 19;
   public static final int IDENT = 58;
-  public static final int READLN = 65;
+  public static final int READLN = 64;
   public static final int EQ = 42;
   public static final int TIMES = 40;
   public static final int COLON = 53;
   public static final int ELSE = 10;
-  public static final int READ = 64;
+  public static final int READ = 65;
   public static final int TO = 31;
   public static final int FILE = 12;
   public static final int GOTO = 15;
@@ -141,8 +141,8 @@ public class sym {
   "REALCONST",
   "CHARCONST",
   "STRINGCONST",
-  "READ",
   "READLN",
+  "READ",
   "WRITE",
   "WRITELN"
   };

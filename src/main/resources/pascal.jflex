@@ -1,29 +1,58 @@
 package grammar;
 
-import java.io.*;
-import java_cup.runtime.*;
+import java_cup.runtime.Symbol;
+import java_cup.runtime.ComplexSymbolFactory;
+import java_cup.runtime.ComplexSymbolFactory.Location;
 
 %%
-
-%cup
 %public
-%type Symbol
+%class Lexer
+%cup
+%implements sym
 %char
+%line
+%column
 
 %{
-	private int lineNumber = 1;
-	public int lineNumber() { return lineNumber; }
-	
-	public Symbol token( int tokenType ) {
-		System.err.println( "Obtain token " + sym.terminal_name( tokenType ) 
-			+ " \"" + yytext() + "\"" );
-		return new Symbol( tokenType, yychar, yychar + yytext().length(), yytext() );
-	}
+    StringBuffer string = new StringBuffer();
+    public Lexer(java.io.Reader in, ComplexSymbolFactory sf, String inputFile){
+	this(in);
+	symbolFactory = sf;
+	inputFileName = inputFile;
+    }
+    ComplexSymbolFactory symbolFactory;
+    String inputFileName;
 
+  private Symbol symbol(String name, int sym) {
+      return symbolFactory.newSymbol(name, sym, new Location(inputFileName, yyline+1,yycolumn+1,yychar), new Location(inputFileName, yyline+1,yycolumn+yylength(),yychar+yylength()));
+  }
+
+    private Symbol symbol(int sym) {
+    String name = terminalNames[sym];
+        return symbolFactory.newSymbol(name, sym, new Location(inputFileName, yyline+1,yycolumn+1,yychar), new Location(inputFileName, yyline+1,yycolumn+yylength(),yychar+yylength()));
+    }
+
+  private Symbol symbol(String name, int sym, Object val) {
+      Location left = new Location(inputFileName, yyline+1,yycolumn+1,yychar);
+      Location right= new Location(inputFileName, yyline+1,yycolumn+yylength(), yychar+yylength());
+      return symbolFactory.newSymbol(name, sym, left, right,val);
+  }
+  private Symbol symbol(String name, int sym, Object val,int buflength) {
+      Location left = new Location(inputFileName, yyline+1,yycolumn+yylength()-buflength,yychar+yylength()-buflength);
+      Location right= new Location(inputFileName, yyline+1,yycolumn+yylength(), yychar+yylength());
+      return symbolFactory.newSymbol(name, sym, left, right,val);
+  }
+  private void error(String message) {
+    System.out.println("Error at line "+(yyline+1)+", column "+(yycolumn+1)+" : "+message);
+  }
 %}
 
+%eofval{
+     return symbolFactory.newSymbol("EOF", EOF, new Location(inputFileName, yyline+1,yycolumn+1,yychar), new Location(inputFileName, yyline+1,yycolumn+1,yychar+1));
+%eofval}
+
 SpaceChar		=	[\ \t]
-LineChar		=	\n|\r|\r\n
+LineChar		=	\n|\r|\r\n;
 
 Zero			=	0
 DecInt			=	[1-9][0-9]*
@@ -41,89 +70,89 @@ Ident			=	[A-Za-z_$] [A-Za-z_$0-9]*
 Char			=	[^\'] | \'\'
 
 %%
-and				{ return token( sym.AND ); }
-array			{ return token( sym.ARRAY ); }
-begin			{ return token( sym.BEGIN ); }
-case			{ return token( sym.CASE ); }
-const			{ return token( sym.CONST ); }
-div				{ return token( sym.DIV ); }
-do				{ return token( sym.DO ); }
-downto			{ return token( sym.DOWNTO ); }
-else			{ return token( sym.ELSE ); }
-end				{ return token( sym.END ); }
-file			{ return token( sym.FILE ); }
-for				{ return token( sym.FOR ); }
-function		{ return token( sym.FUNCTION ); }
-goto			{ return token( sym.GOTO ); }
-if				{ return token( sym.IF ); }
-in				{ return token( sym.IN ); }
-label			{ return token( sym.LABEL ); }
-mod				{ return token( sym.MOD ); }
-nil				{ return token( sym.NIL ); }
-not				{ return token( sym.NOT ); }
-of				{ return token( sym.OF ); }
-or				{ return token( sym.OR ); }
-packed			{ return token( sym.PACKED ); }
-procedure		{ return token( sym.PROCEDURE ); }
-program			{ return token( sym.PROGRAM ); }
-record			{ return token( sym.RECORD ); }
-repeat			{ return token( sym.REPEAT ); }
-set				{ return token( sym.SET ); }
-then			{ return token( sym.THEN ); }
-to				{ return token( sym.TO ); }
-type			{ return token( sym.TYPE ); }
-until			{ return token( sym.UNTIL ); }
-var				{ return token( sym.VAR ); }
-while			{ return token( sym.WHILE ); }
-with			{ return token( sym.WITH ); }
-read			{ return token( sym.READ ); }
-readln			{ return token( sym.READLN ); }
-write			{ return token( sym.WRITE ); }
-writeln			{ return token( sym.WRITELN ); }
+and				{ return symbol( AND ); }
+array			{ return symbol( ARRAY ); }
+begin			{ return symbol( BEGIN ); }
+case			{ return symbol( CASE ); }
+const			{ return symbol( CONST ); }
+div				{ return symbol( DIV ); }
+do				{ return symbol( DO ); }
+downto			{ return symbol( DOWNTO ); }
+else			{ return symbol( ELSE ); }
+end				{ return symbol( END ); }
+file			{ return symbol( FILE ); }
+for				{ return symbol( FOR ); }
+function		{ return symbol( FUNCTION ); }
+goto			{ return symbol( GOTO ); }
+if				{ return symbol( IF ); }
+in				{ return symbol( IN ); }
+label			{ return symbol( LABEL ); }
+mod				{ return symbol( MOD ); }
+nil				{ return symbol( NIL ); }
+not				{ return symbol( NOT ); }
+of				{ return symbol( OF ); }
+or				{ return symbol( OR ); }
+packed			{ return symbol( PACKED ); }
+procedure		{ return symbol( PROCEDURE ); }
+program			{ return symbol( PROGRAM ); }
+record			{ return symbol( RECORD ); }
+repeat			{ return symbol( REPEAT ); }
+set				{ return symbol( SET ); }
+then			{ return symbol( THEN ); }
+to				{ return symbol( TO ); }
+type			{ return symbol( TYPE ); }
+until			{ return symbol( UNTIL ); }
+var				{ return symbol( VAR ); }
+while			{ return symbol( WHILE ); }
+with			{ return symbol( WITH ); }
+read			{ return symbol( READ ); }
+readln			{ return symbol( READLN ); }
+write			{ return symbol( WRITE ); }
+writeln			{ return symbol( WRITELN ); }
 
-"("				{ return token( sym.LEFT ); }
-")"				{ return token( sym.RIGHT ); }
-"["				{ return token( sym.LEFTSQ ); }
-"]"				{ return token( sym.RIGHTSQ ); }
+"("				{ return symbol( LEFT ); }
+")"				{ return symbol( RIGHT ); }
+"["				{ return symbol( LEFTSQ ); }
+"]"				{ return symbol( RIGHTSQ ); }
 
-":"				{ return token( sym.COLON ); }
-";"				{ return token( sym.SEMICOLON ); }
-","				{ return token( sym.COMMA ); }
-"."				{ return token( sym.DOT ); }
-".."			{ return token( sym.DOTDOT ); }
-"^"				{ return token( sym.PTR ); }
+":"				{ return symbol( COLON ); }
+";"				{ return symbol( SEMICOLON ); }
+","				{ return symbol( COMMA ); }
+"."				{ return symbol( DOT ); }
+".."			{ return symbol( DOTDOT ); }
+"^"				{ return symbol( PTR ); }
 
-":="				{ return token( sym.ASSIGN ); }
+":="			{ return symbol( ASSIGN ); }
 
-"+"				{ return token( sym.PLUS ); }
-"-"				{ return token( sym.MINUS ); }
-"*"				{ return token( sym.TIMES ); }
-"/"				{ return token( sym.DIVIDE ); }
+"+"				{ return symbol( PLUS ); }
+"-"				{ return symbol( MINUS ); }
+"*"				{ return symbol( TIMES ); }
+"/"				{ return symbol( DIVIDE ); }
 
-"="				{ return token( sym.EQ ); }
-"<>"			{ return token( sym.NE ); }
-"<"				{ return token( sym.LT ); }
-">"				{ return token( sym.GT ); }
-"<="			{ return token( sym.LE ); }
-">="			{ return token( sym.GE ); }
+"="				{ return symbol( EQ ); }
+"<>"			{ return symbol( NE ); }
+"<"				{ return symbol( LT ); }
+">"				{ return symbol( GT ); }
+"<="			{ return symbol( LE ); }
+">="			{ return symbol( GE ); }
 
-true			{ return token( sym.BOOLCONST ); }
-false			{ return token( sym.BOOLCONST ); }
+true			{ return symbol( BOOLCONST ); }
+false			{ return symbol( BOOLCONST ); }
 
-{Integer}		{ return token( sym.INTCONST ); }
+{Integer}		{ return symbol( INTCONST ); }
 
-{Float}			{ return token( sym.REALCONST ); }
+{Float}			{ return symbol( REALCONST ); }
 
-\'{Char}\'		{ return token( sym.CHARCONST ); }
-\'{Char}*\'		{return token( sym.STRINGCONST ); }
+\'{Char}\'		{ return symbol( CHARCONST ); }
+\'{Char}*\'		{ return symbol( STRINGCONST ); }
 
-{Ident}			{ return token( sym.IDENT ); }
+{Ident}			{ return symbol( IDENT ); }
 
 "(*"~"*)"		{ }
 "{"~"}"			{ }
 
-{LineChar}		{ lineNumber++; }
+{LineChar}		{ }
 {SpaceChar}		{ }
-.				{ return token( sym.error ); }
-<<EOF>>			{ return token( sym.EOF ); }
+.				{ return symbol( error ); }
+<<EOF>>			{ return symbol( EOF ); }
 
