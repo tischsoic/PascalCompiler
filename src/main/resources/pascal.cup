@@ -39,85 +39,32 @@ terminal RIGHT, COMMA, SEMICOLON, COLON, DOTDOT, LEFTSQ, RIGHTSQ, PTR, IDENT, BO
 terminal CHARCONST, STRINGCONST;
 terminal READLN, READ, WRITE, WRITELN;
 
-non terminal
-	Program,
-	ProgramHeading,
-	Block,
-	LabelDeclOpt,
-	LabelDecl,
-	LabelDeclrList,
-	LabelDeclr,
-	ConstantDeclOpt,
-	ConstantDecl,
-	ConstDeclrList,
-	ConstDeclr,
-	ConstantList,
-	Constant,
-	TypeDeclOpt,
-	TypeDecl,
-	TypeDeclrList,
-	TypeDeclr,
-	Type,
-	SimpleType,
-	ScalarType,
-	SubrangeType,
-	StructuredType,
-	UnpackedType,
-	ArrayType,
-	SimpleTypeList,
-	RecordType,
-	FieldList,
-	FieldDeclList,
-	FieldDecl,
-	VariantFields,
-	VariantList,
-	Variant,
-	SetType,
-	FileType,
-	PointerType,
-	VarDeclOpt,
-	VarDecl,
-	VarDeclrList,
-	VarDeclr,
-	IdentList,
-	ProcDeclrList,
-	ProcDeclr,
-	FuncDeclr,
-	ProcHeader,
-	FuncHeader,
-	FormalParamDeclList,
-	FormalParamDecl,
-	Stmt,
-	UnlabelledStmt,
-	SimpleStmt,
-	StructuredStmt,
-	Variable,
-	WriteExprList,
-	ExprList,
-	WriteExpr,
-	Expr,
-	SimpleExpr,
-	Term,
-	Factor,
-	Invocation,
-	Set,
-	ElementList,
-	Element,
-	CompoundStmt,
-	StmtList,
-	ConditionalStmt,
-	CaseStmtList,
-	CaseStmt,
-	LoopStmt,
-	WithStmt,
-	VariableList
-	;
+non terminal File, Program, Module, ProgramHeading, Block, LabelDeclarationPart, LabelDecl, LabelList, LabelDeclaration, ConstantDeclarationPart;
+non terminal ConstantDecl, ConstDeclarationList, ConstDeclr, ConstantList, Constant, TypeDefinitionPart, TypeDecl, TypeDeclrList;
+non terminal TypeDeclr, Type, SimpleType, ScalarType, SubrangeType, StructuredType, UnpackedType, ArrayType, SimpleTypeList;
+non terminal RecordType, FieldList, FieldDeclList, FieldDecl, VariantFields, VariantList, Variant, SetType, FileType;
+non terminal PointerType, VariableDeclarationPart, VarDecl, VarDeclrList, VarDeclr, IdentList, ProcedureAndFunctionDeclarationPart, ProcDeclr, FuncDeclr;
+non terminal ProcHeader, FuncHeader, FormalParamDeclList, FormalParamDecl, Stmt, UnlabelledStmt, SimpleStmt, StructuredStmt;
+non terminal Variable, WriteExprList, ExprList, WriteExpr, Expr, SimpleExpr, Term, Factor, Invocation, Set, ElementList;
+non terminal Element, StatementPart, StmtList, ConditionalStmt, CaseStmtList, CaseStmt, LoopStmt, WithStmt, VariableList;
 
 precedence nonassoc ELSE;
 
-start with Program;
+start with File;
 
-Program::=
+File ::=
+        Program
+    |   Module
+    ;
+
+Module ::=
+        ConstantDeclarationPart
+        TypeDefinitionPart
+        VariableDeclarationPart
+        ProcedureAndFunctionDeclarationPart
+    ;
+
+Program ::=
 		ProgramHeading Block DOT
 	;
 
@@ -127,44 +74,36 @@ ProgramHeading::=
 	;
 
 Block::=
-		LabelDeclOpt
-		ConstantDeclOpt
-		TypeDeclOpt
-		VarDeclOpt
-		ProcDeclrList
-		CompoundStmt
+		LabelDeclarationPart
+		ConstantDeclarationPart
+		TypeDefinitionPart
+		VariableDeclarationPart
+		ProcedureAndFunctionDeclarationPart
+		StatementPart
 	;
 
-LabelDeclOpt::=
+LabelDeclarationPart::=
 		/* Empty */
-	|	LabelDecl
+	|	LABEL LabelList SEMICOLON
 	;
 
-LabelDecl::=
-		LABEL LabelDeclrList SEMICOLON
+LabelList::=
+		LabelDeclaration
+	|	LabelList COMMA LabelDeclaration
 	;
 
-LabelDeclrList::=
-		LabelDeclr
-	|	LabelDeclrList COMMA LabelDeclr
-	;
-
-LabelDeclr::=
+LabelDeclaration::=
 		INTCONST
 	;
 	
-ConstantDeclOpt::=
+ConstantDeclarationPart::=
 		/* Empty */
-	|	ConstantDecl
+	|	CONST ConstDeclarationList SEMICOLON
 	;
-
-ConstantDecl::=
-		CONST ConstDeclrList SEMICOLON
-	;
-
-ConstDeclrList::=
+	
+ConstDeclarationList::=
 		ConstDeclr
-	|	ConstDeclrList COMMA ConstDeclr
+	|	ConstDeclarationList COMMA ConstDeclr
 	;
 
 ConstDeclr::=
@@ -189,7 +128,7 @@ Constant::=
 	|	STRINGCONST
 	;
 
-TypeDeclOpt::=
+TypeDefinitionPart::=
 		/* Empty */
 	|	TypeDecl
 	;
@@ -294,7 +233,7 @@ PointerType::=
 		PTR IDENT
 	;
 
-VarDeclOpt::=
+VariableDeclarationPart::=
 		/* Empty */
 	|	VarDecl
 	;
@@ -317,10 +256,10 @@ IdentList::=
 	|	IdentList COMMA IDENT
 	;
 
-ProcDeclrList::=
+ProcedureAndFunctionDeclarationPart::=
 		/* Empty */
-	|	ProcDeclrList ProcDeclr SEMICOLON
-	|	ProcDeclrList FuncDeclr SEMICOLON
+	|	ProcedureAndFunctionDeclarationPart ProcDeclr SEMICOLON
+	|	ProcedureAndFunctionDeclarationPart FuncDeclr SEMICOLON
 	;
 
 ProcDeclr::=
@@ -374,7 +313,7 @@ SimpleStmt::=
 	;
 
 StructuredStmt::=
-		CompoundStmt
+		StatementPart
 	|	ConditionalStmt
 	|	LoopStmt
 	|	WithStmt
@@ -465,7 +404,7 @@ Element::=
 	|	Expr DOTDOT Expr
 	;
 
-CompoundStmt::=
+StatementPart::=
 		BEGIN StmtList END
 	;
 
