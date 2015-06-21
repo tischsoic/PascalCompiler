@@ -115,7 +115,7 @@ read			{ return symbol( READ ); }
 readln			{ return symbol( READLN ); }
 write			{ return symbol( WRITE ); }
 writeln			{ return symbol( WRITELN ); }
-uses      {return symbol( USES );}
+uses            { return symbol( USES );}
 
 "("				{ return symbol( LEFT ); }
 ")"				{ return symbol( RIGHT ); }
@@ -143,17 +143,17 @@ uses      {return symbol( USES );}
 "<="			{ return symbol( LE ); }
 ">="			{ return symbol( GE ); }
 
-true			{ return symbol( BOOLCONST ); }
-false			{ return symbol( BOOLCONST ); }
+true			{ return symbol( "Boolean", BOOLCONST, Boolean.parseBoolean(yytext()) ); }
+false			{ return symbol( "Boolean", BOOLCONST, Boolean.parseBoolean(yytext()) ); }
 
-{Integer}		{ return symbol( INTCONST ); }
+{Integer}		{ return symbol( "Integer", INTCONST, Integer.parseInt(yytext()) ); }
 
-{Float}			{ return symbol( REALCONST ); }
+{Float}			{ return symbol( "Float", REALCONST, Double.parseDouble(yytext()) ); }
 
-\'{Char}\'		{ return symbol( CHARCONST ); }
-\'{Char}*\'		{ return symbol( STRINGCONST ); }
+\'{Char}\'		{ return symbol( "Char", CHARCONST, yytext().charAt(0) ); }
+\'{Char}*\'		{ return symbol( "String", STRINGCONST, yytext() ); }
 
-{Ident}			{ return symbol( IDENT ); }
+{Ident}			{ return symbol( "Identifier", IDENT, yytext() ); }
 
 "(*"~"*)"		{ }
 "{"~"}"			{ }
