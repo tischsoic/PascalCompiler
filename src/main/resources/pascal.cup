@@ -35,12 +35,17 @@ parser code {:
 terminal AND, ARRAY, BEGIN, CASE, CONST, DIV, DO, DOWNTO, ELSE, END, FILE, FOR, FUNCTION, GOTO, IF, IN;
 terminal LABEL, MOD, NIL, NOT, OF, OR, PACKED, PROCEDURE, PROGRAM, RECORD, REPEAT, SET, THEN, TO, TYPE, USES;
 terminal UNTIL, VAR, WHILE, WITH, ASSIGN, PLUS, MINUS, TIMES, DIVIDE, EQ, NE, LT, GT, LE, GE, DOT, LEFT;
-terminal RIGHT, COMMA, SEMICOLON, COLON, DOTDOT, LEFTSQ, RIGHTSQ, PTR, IDENT, BOOLCONST, INTCONST, REALCONST;
-terminal CHARCONST, STRINGCONST;
+terminal RIGHT, COMMA, SEMICOLON, COLON, DOTDOT, LEFTSQ, RIGHTSQ, PTR;
 terminal READLN, READ, WRITE, WRITELN;
+terminal String IDENT;
+terminal Boolean BOOLCONST;
+terminal Integer INTCONST;
+terminal Double REALCONST;
+terminal Character CHARCONST;
+terminal String STRINGCONST;
 
-non terminal File, Program, Module, ProgramHeading, Block, LabelDeclarationPart, LabelDecl, LabelList, LabelDeclaration, ConstantDeclarationPart, Extern;
-non terminal ConstantDecl, ConstDeclarationList, ConstDeclr, ConstantList, Constant, TypeDefinitionPart, TypeDecl, TypeDeclrList;
+non terminal File, Program, Module, ProgramHeading, Block, LabelDeclarationPart, LabelList, LabelDeclaration, ConstantDeclarationPart, Extern;
+non terminal ConstDeclarationList, ConstDeclr, ConstantList, Constant, TypeDefinitionPart, TypeDecl, TypeDeclrList;
 non terminal TypeDeclr, Type, SimpleType, ScalarType, SubrangeType, StructuredType, UnpackedType, ArrayType, SimpleTypeList;
 non terminal RecordType, FieldList, FieldDeclList, FieldDecl, VariantFields, VariantList, Variant, SetType, FileType;
 non terminal PointerType, VariableDeclarationPart, VarDecl, VarDeclrList, VarDeclr, IdentList, ProcedureAndFunctionDeclarationPart, ProcDeclr, FuncDeclr;
@@ -50,53 +55,53 @@ non terminal Element, StatementPart, StmtList, ConditionalStmt, CaseStmtList, Ca
 
 precedence nonassoc ELSE;
 
-start with File;
+
 
 File ::=
-        Program
-    |   Module
+        Program:p
+    |   Module:m
     ;
 
 Module ::=
-        ConstantDeclarationPart
-        TypeDefinitionPart
-        VariableDeclarationPart
-        ProcedureAndFunctionDeclarationPart
+        ConstantDeclarationPart:c
+        TypeDefinitionPart:t
+        VariableDeclarationPart:v
+        ProcedureAndFunctionDeclarationPart:p
     ;
 
 Program ::=
-		ProgramHeading Block DOT
+		ProgramHeading:p Block:b DOT
 	;
 
 ProgramHeading::=
         PROGRAM IDENT SEMICOLON
-	|   PROGRAM IDENT LEFT IdentList RIGHT SEMICOLON
+	|   PROGRAM IDENT LEFT IdentList:i RIGHT SEMICOLON
 	;
 
 Block::=
-		Extern
-		LabelDeclarationPart
-		ConstantDeclarationPart
-		TypeDefinitionPart
-		VariableDeclarationPart
-		ProcedureAndFunctionDeclarationPart
-		StatementPart
+		Extern:e
+		LabelDeclarationPart:l
+		ConstantDeclarationPart:c
+		TypeDefinitionPart:t
+		VariableDeclarationPart:v
+		ProcedureAndFunctionDeclarationPart:p
+		StatementPart:s
 	;
 
 /* Blok "uses" */
 Extern::=
 		
-	|	USES IdentList SEMICOLON
+	|	USES IdentList:i SEMICOLON
 	;
 
 LabelDeclarationPart::=
 		/* Empty */
-	|	LABEL LabelList SEMICOLON
+	|	LABEL LabelList:l SEMICOLON
 	;
 
 LabelList::=
-		LabelDeclaration
-	|	LabelList COMMA LabelDeclaration
+		LabelDeclaration:ld
+	|	LabelList:ll COMMA LabelDeclaration:l
 	;
 
 LabelDeclaration::=
@@ -105,21 +110,21 @@ LabelDeclaration::=
 	
 ConstantDeclarationPart::=
 		/* Empty */
-	|	CONST ConstDeclarationList
+	|	CONST ConstDeclarationList:c
 	;
 	
 ConstDeclarationList::=
-		ConstDeclr
-	|	ConstDeclarationList ConstDeclr
+		ConstDeclr:c
+	|	ConstDeclarationList:cdl ConstDeclr:cd
 	;
 
 ConstDeclr::=
-		IDENT EQ Constant SEMICOLON
+		IDENT EQ Constant:c SEMICOLON
 	;
 
 ConstantList::=
-		Constant
-	|	ConstantList COMMA Constant
+		Constant:c
+	|	ConstantList:cl COMMA Constant:c
 	;
 
 Constant::=
@@ -137,105 +142,105 @@ Constant::=
 
 TypeDefinitionPart::=
 		/* Empty */
-	|	TypeDecl
+	|	TypeDecl:t
 	;
 
 TypeDecl::=
-		TYPE TypeDeclrList SEMICOLON
+		TYPE TypeDeclrList:t SEMICOLON
 	;
 
 TypeDeclrList::=
-		TypeDeclr
-	|	TypeDeclrList SEMICOLON TypeDeclr
+		TypeDeclr:t
+	|	TypeDeclrList:tl SEMICOLON TypeDeclr:td
 	;
 
 TypeDeclr::=
-		IDENT EQ Type
-	|	IDENT EQ Type LEFTSQ IDENT RIGHTSQ
-	|	IDENT EQ Type LEFTSQ SubrangeType RIGHTSQ
+		IDENT EQ Type:t
+	|	IDENT EQ Type:t LEFTSQ IDENT RIGHTSQ
+	|	IDENT EQ Type:t LEFTSQ SubrangeType:s RIGHTSQ
 	;
 
 Type::=
-		SimpleType
-	|	StructuredType
-	|	PointerType
+		SimpleType:s
+	|	StructuredType:st
+	|	PointerType:p
 	;
 	
 SimpleType::=
 		IDENT
-	|	ScalarType
-	|	SubrangeType
+	|	ScalarType:s
+	|	SubrangeType:s
 	;
 
 ScalarType::=
-		LEFT IdentList RIGHT
+		LEFT IdentList:il RIGHT
 	;
 
 SubrangeType::=
-		Constant DOTDOT Constant
+		Constant:c DOTDOT Constant:c2
 	;
 
 StructuredType::=
-		UnpackedType
-	|	PACKED UnpackedType
+		UnpackedType:u
+	|	PACKED UnpackedType:u2
 	;
 
 UnpackedType::=
-		ArrayType
-	|	RecordType
-	|	SetType
-	|	FileType
+		ArrayType:a
+	|	RecordType:r
+	|	SetType:s
+	|	FileType:f
 	;
 
 ArrayType::=
-		ARRAY LEFTSQ SimpleTypeList RIGHTSQ OF Type
+		ARRAY LEFTSQ SimpleTypeList:s RIGHTSQ OF Type:t
 	;
 
 SimpleTypeList::=
-		SimpleType
-	|	SimpleTypeList COMMA SimpleType
+		SimpleType:s
+	|	SimpleTypeList:sl COMMA SimpleType:s2
 	;
 
 RecordType::=
-		RECORD FieldList END
+		RECORD FieldList:f END
 	;
 
 FieldList::=
-		FieldDeclList
-	|	FieldDeclList SEMICOLON VariantFields
+		FieldDeclList:f
+	|	FieldDeclList:f2 SEMICOLON VariantFields:v
 	;
 	
 FieldDeclList::=
 		/* Empty */
-	|	FieldDeclList SEMICOLON FieldDecl
+	|	FieldDeclList:f SEMICOLON FieldDecl:fd
 	;
 
 FieldDecl::=
 		/* Empty */
-	|	IdentList COLON Type
+	|	IdentList:i COLON Type:t
 	;
 
 VariantFields::=
-		CASE IDENT COLON IDENT OF VariantList
-	|   CASE IDENT OF VariantList
+		CASE IDENT COLON IDENT OF VariantList:v
+	|   CASE IDENT OF VariantList:v2
 	;
 
 VariantList::=
-		Variant
-	|   VariantList SEMICOLON Variant
+		Variant:v
+	|   VariantList:vl SEMICOLON Variant:v2
 	;
 
 Variant::=
 		/* Empty */
-	|	ConstantList COLON LEFT FieldList RIGHT
+	|	ConstantList:c COLON LEFT FieldList:f RIGHT
 	;
 
 SetType::=
-		SET OF SimpleType
+		SET OF SimpleType:s
 	;
 	
 FileType::=
-		FILE OF Type
+		FILE OF Type:t
 	;
 	
 PointerType::=
@@ -244,81 +249,81 @@ PointerType::=
 
 VariableDeclarationPart::=
 		/* Empty */
-	|	VarDecl
+	|	VarDecl:v
 	;
 
 VarDecl::=
-		VAR VarDeclrList
+		VAR VarDeclrList:v
 	;
 
 VarDeclrList::=
 		/* Empty */
-	|	VarDeclrList VarDeclr
+	|	VarDeclrList:vl VarDeclr:vd
 	;
 
 VarDeclr::=
-		IdentList COLON Type SEMICOLON
+		IdentList COLON Type:t SEMICOLON
 	;
 
 IdentList::=
 		/* Empty */
 		IDENT
-	|	IdentList COMMA IDENT 
+	|	IdentList:il COMMA IDENT:i
 	;
 
 ProcedureAndFunctionDeclarationPart::=
 		/* Empty */
-	|	ProcedureAndFunctionDeclarationPart ProcDeclr SEMICOLON
-	|	ProcedureAndFunctionDeclarationPart FuncDeclr SEMICOLON
+	|	ProcedureAndFunctionDeclarationPart:pp ProcDeclr:p SEMICOLON
+	|	ProcedureAndFunctionDeclarationPart:pp2 FuncDeclr:f SEMICOLON
 	;
 
 ProcDeclr::=
-		ProcHeader Block
+		ProcHeader:p Block:b
 	;
 
 FuncDeclr::=
-		FuncHeader Block
+		FuncHeader:f Block:b
 	;
 
 ProcHeader::=
 		PROCEDURE IDENT SEMICOLON
-	|	PROCEDURE IDENT LEFT FormalParamDeclList RIGHT SEMICOLON
+	|	PROCEDURE IDENT LEFT FormalParamDeclList:f RIGHT SEMICOLON
 	;
 
 FuncHeader::=
 		FUNCTION IDENT COLON IDENT SEMICOLON
-	|	FUNCTION IDENT LEFT FormalParamDeclList RIGHT COLON IDENT SEMICOLON
+	|	FUNCTION IDENT LEFT FormalParamDeclList:f RIGHT COLON IDENT SEMICOLON
 	;
 
 FormalParamDeclList::=
-		FormalParamDecl
-	|	FormalParamDeclList SEMICOLON FormalParamDecl
+		FormalParamDecl:f
+	|	FormalParamDeclList:fl SEMICOLON FormalParamDecl:f2
 	;
 
 FormalParamDecl::=
-		VAR IdentList COLON Type
-	|	IdentList COLON Type
-	|	FUNCTION IdentList COLON Type
-	|	PROCEDURE IdentList
+		VAR IdentList:it COLON Type:t
+	|	IdentList:il COLON Type:t2
+	|	FUNCTION IdentList:il2 COLON Type:t3
+	|	PROCEDURE IdentList:il3
 	;
 
 Stmt::=
-		UnlabelledStmt
-	|	INTCONST COLON UnlabelledStmt
+		UnlabelledStmt:u
+	|	INTCONST COLON UnlabelledStmt:u2
 	;
 
 UnlabelledStmt::=
-		SimpleStmt
-	|	StructuredStmt
+		SimpleStmt:s
+	|	StructuredStmt:ss
 	;
 
 SimpleStmt::=
-		Variable ASSIGN Expr
-	|	Invocation
-	|	WRITE LEFT WriteExprList RIGHT
-	|	WRITELN LEFT WriteExprList RIGHT
-	|	READLN LEFT Variable RIGHT
-	|	READ LEFT Variable RIGHT
+		Variable:v ASSIGN Expr:e
+	|	Invocation:i
+	|	WRITE LEFT WriteExprList:w RIGHT
+	|	WRITELN LEFT WriteExprList:w2 RIGHT
+	|	READLN LEFT Variable:v2 RIGHT
+	|	READ LEFT Variable:v3 RIGHT
 	|	READLN
 	|	READ
 	|	WRITELN
@@ -329,135 +334,135 @@ SimpleStmt::=
 	;
 
 StructuredStmt::=
-		StatementPart
-	|	ConditionalStmt
-	|	LoopStmt
-	|	WithStmt
+		StatementPart:s
+	|	ConditionalStmt:c
+	|	LoopStmt:l
+	|	WithStmt:w
 	;
 
 Variable::=
 		IDENT
-	|	Variable LEFTSQ ExprList RIGHTSQ
-	|	Variable DOT IDENT
-	|	Variable PTR
+	|	Variable:v LEFTSQ ExprList:e RIGHTSQ
+	|	Variable:v2 DOT IDENT
+	|	Variable:v3 PTR
 	;
 
 WriteExprList::=
-		WriteExpr
-	|	WriteExprList COMMA WriteExpr
+		WriteExpr:w
+	|	WriteExprList:wl COMMA WriteExpr:we
 	;
 
 WriteExpr::=
-		Expr
-	|	Expr COLON Expr
-	|	Expr COLON Expr COLON Expr
+		Expr:e
+	|	Expr:e2 COLON Expr:e4
+	|	Expr:e3 COLON Expr:e5 COLON Expr:e6
 	;
 	
 ExprList::=
-		Expr
-	|	ExprList COMMA Expr
+		Expr:e
+	|	ExprList:el COMMA Expr:e2
 	;
 	
 Expr::=
-		SimpleExpr
-	|	SimpleExpr EQ SimpleExpr
-	|	SimpleExpr NE SimpleExpr
-	|	SimpleExpr LT SimpleExpr
-	|	SimpleExpr LE SimpleExpr
-	|	SimpleExpr GT SimpleExpr
-	|	SimpleExpr GE SimpleExpr
-	|	SimpleExpr IN SimpleExpr
+		SimpleExpr:se
+	|	SimpleExpr:se2 EQ SimpleExpr:se9
+	|	SimpleExpr:se3 NE SimpleExpr:se10
+	|	SimpleExpr:se4 LT SimpleExpr:se11
+	|	SimpleExpr:se5 LE SimpleExpr:se12
+	|	SimpleExpr:se6 GT SimpleExpr:se13
+	|	SimpleExpr:se7 GE SimpleExpr:se14
+	|	SimpleExpr:se8 IN SimpleExpr:se15
 	;
 
 SimpleExpr::=
-		Term
-	|	PLUS Term
-	|	MINUS Term
-	|	SimpleExpr PLUS Term
-	|	SimpleExpr MINUS Term
-	|	SimpleExpr OR Term
+		Term:t
+	|	PLUS Term:t2
+	|	MINUS Term:t3
+	|	SimpleExpr:se PLUS Term:t4
+	|	SimpleExpr:se1 MINUS Term:t5
+	|	SimpleExpr:se2 OR Term:t6
 	;
 
 Term::=
-		Factor
-	|	Term TIMES Factor
-	|	Term DIVIDE Factor
-	|	Term DIV Factor
-	|	Term MOD Factor
-	|	Term AND Factor
+		Factor:f
+	|	Term:t1 TIMES Factor:f1
+	|	Term:t2 DIVIDE Factor:f2
+	|	Term:t3 DIV Factor:f3
+	|	Term:t4 MOD Factor:f4
+	|	Term:t5 AND Factor:f5
 	;
 
 Factor::=
-		Variable
+		Variable:v
 	|	BOOLCONST
 	|	INTCONST
 	|	REALCONST
 	|	CHARCONST
 	|	STRINGCONST
 	|	NIL
-	|	LEFT Expr RIGHT
-	|	Invocation
-	|	Set
-	|	NOT Factor
+	|	LEFT Expr:e RIGHT
+	|	Invocation:i
+	|	Set:s
+	|	NOT Factor:f
 	;
 
 Invocation::=
-		IDENT LEFT ExprList RIGHT
+		IDENT LEFT ExprList:e RIGHT
 	;
 
 Set::=
-		LEFTSQ ElementList RIGHTSQ
+		LEFTSQ ElementList:e RIGHTSQ
 	|	LEFTSQ RIGHTSQ
 	;
 
 ElementList::=
-		Element
-	|	ElementList COMMA Element
+		Element:e
+	|	ElementList:el COMMA Element:e1
 	;
 
 Element::=
-		Expr
-	|	Expr DOTDOT Expr
+		Expr:e1
+	|	Expr:e2 DOTDOT Expr:e3
 	;
 
 StatementPart::=
-		BEGIN StmtList END
+		BEGIN StmtList:s END
 	;
 
 StmtList::=
-		Stmt
-	|	StmtList SEMICOLON Stmt
+		Stmt:s
+	|	StmtList:sl SEMICOLON Stmt:s2
 	;
 
 ConditionalStmt::=
-		IF Expr THEN Stmt
-	|	IF Expr THEN Stmt ELSE Stmt
-	|	CASE Expr OF CaseStmtList END
+		IF Expr:e THEN Stmt:s
+	|	IF Expr:e2 THEN Stmt:s2 ELSE Stmt:s3
+	|	CASE Expr OF CaseStmtList:c END
 	;
 
 CaseStmtList::=
-		CaseStmt
-	|	CaseStmtList SEMICOLON CaseStmt
+		CaseStmt:c
+	|	CaseStmtList:cl SEMICOLON CaseStmt:cs
 	;
 
 CaseStmt::=
 		/* empty */
-	|	ConstantList COLON Stmt
+	|	ConstantList:cl COLON Stmt:s
 	;
 
 LoopStmt::=
-		WHILE Expr DO Stmt
-	|	REPEAT StmtList UNTIL Expr
-	|	FOR IDENT ASSIGN Expr TO Expr DO Stmt
-	|	FOR IDENT ASSIGN Expr DOWNTO Expr DO Stmt
+		WHILE Expr:e DO Stmt:s
+	|	REPEAT StmtList:sl UNTIL Expr:e2
+	|	FOR IDENT ASSIGN Expr:e3 TO Expr:e5 DO Stmt:s3
+	|	FOR IDENT ASSIGN Expr:e4 DOWNTO Expr:e6 DO Stmt:s6
 	;
 
 
 WithStmt::=
-		WITH VariableList DO Stmt
+		WITH VariableList:v DO Stmt:s
 	;
 
 VariableList::=
-		Variable
-	|	VariableList COMMA Variable
+		Variable:v
+	|	VariableList:vl COMMA Variable:v2
 	;

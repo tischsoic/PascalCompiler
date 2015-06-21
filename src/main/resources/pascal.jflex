@@ -71,7 +71,11 @@ Float			=	( {Float1} | {Float2} | {Float3} | {Float4} ) [fFdD]? | [0-9]+ [fFDd]
 Ident			=	[A-Za-z_$] [A-Za-z_$0-9]*
 Char			=	[^\'] | \'\'
 
+%state STRING
+
 %%
+
+<YYINITIAL>{
 and				{ return symbol( AND ); }
 array			{ return symbol( ARRAY ); }
 begin			{ return symbol( BEGIN ); }
@@ -159,3 +163,4 @@ false			{ return symbol( BOOLCONST ); }
 .				{ return symbol( error ); }
 <<EOF>>			{ return symbol( EOF ); }
 
+}
