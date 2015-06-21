@@ -33,13 +33,13 @@ parser code {:
 :};
 
 terminal AND, ARRAY, BEGIN, CASE, CONST, DIV, DO, DOWNTO, ELSE, END, FILE, FOR, FUNCTION, GOTO, IF, IN;
-terminal LABEL, MOD, NIL, NOT, OF, OR, PACKED, PROCEDURE, PROGRAM, RECORD, REPEAT, SET, THEN, TO, TYPE;
+terminal LABEL, MOD, NIL, NOT, OF, OR, PACKED, PROCEDURE, PROGRAM, RECORD, REPEAT, SET, THEN, TO, TYPE, USES;
 terminal UNTIL, VAR, WHILE, WITH, ASSIGN, PLUS, MINUS, TIMES, DIVIDE, EQ, NE, LT, GT, LE, GE, DOT, LEFT;
 terminal RIGHT, COMMA, SEMICOLON, COLON, DOTDOT, LEFTSQ, RIGHTSQ, PTR, IDENT, BOOLCONST, INTCONST, REALCONST;
 terminal CHARCONST, STRINGCONST;
 terminal READLN, READ, WRITE, WRITELN;
 
-non terminal File, Program, Module, ProgramHeading, Block, LabelDeclarationPart, LabelDecl, LabelList, LabelDeclaration, ConstantDeclarationPart;
+non terminal File, Program, Module, ProgramHeading, Block, LabelDeclarationPart, LabelDecl, LabelList, LabelDeclaration, ConstantDeclarationPart, Extern;
 non terminal ConstantDecl, ConstDeclarationList, ConstDeclr, ConstantList, Constant, TypeDefinitionPart, TypeDecl, TypeDeclrList;
 non terminal TypeDeclr, Type, SimpleType, ScalarType, SubrangeType, StructuredType, UnpackedType, ArrayType, SimpleTypeList;
 non terminal RecordType, FieldList, FieldDeclList, FieldDecl, VariantFields, VariantList, Variant, SetType, FileType;
@@ -74,12 +74,19 @@ ProgramHeading::=
 	;
 
 Block::=
+		Extern
 		LabelDeclarationPart
 		ConstantDeclarationPart
 		TypeDefinitionPart
 		VariableDeclarationPart
 		ProcedureAndFunctionDeclarationPart
 		StatementPart
+	;
+
+/* Blok "uses" */
+Extern::=
+		
+	|	USES IdentList SEMICOLON
 	;
 
 LabelDeclarationPart::=
@@ -98,16 +105,16 @@ LabelDeclaration::=
 	
 ConstantDeclarationPart::=
 		/* Empty */
-	|	CONST ConstDeclarationList SEMICOLON
+	|	CONST ConstDeclarationList
 	;
 	
 ConstDeclarationList::=
 		ConstDeclr
-	|	ConstDeclarationList COMMA ConstDeclr
+	|	ConstDeclarationList ConstDeclr
 	;
 
 ConstDeclr::=
-		IDENT EQ Constant
+		IDENT EQ Constant SEMICOLON
 	;
 
 ConstantList::=
@@ -144,6 +151,8 @@ TypeDeclrList::=
 
 TypeDeclr::=
 		IDENT EQ Type
+	|	IDENT EQ Type LEFTSQ IDENT RIGHTSQ
+	|	IDENT EQ Type LEFTSQ SubrangeType RIGHTSQ
 	;
 
 Type::=
@@ -239,7 +248,7 @@ VariableDeclarationPart::=
 	;
 
 VarDecl::=
-		VAR VarDeclrList SEMICOLON
+		VAR VarDeclrList
 	;
 
 VarDeclrList::=
@@ -253,7 +262,7 @@ VarDeclr::=
 
 IdentList::=
 		/* Empty */
-	|	IDENT
+		IDENT
 	|	IdentList COMMA IDENT 
 	;
 
@@ -308,6 +317,12 @@ SimpleStmt::=
 	|	Invocation
 	|	WRITE LEFT WriteExprList RIGHT
 	|	WRITELN LEFT WriteExprList RIGHT
+	|	READLN LEFT Variable RIGHT
+	|	READ LEFT Variable RIGHT
+	|	READLN
+	|	READ
+	|	WRITELN
+	|	WRITE
 	|	IDENT
 	|	GOTO INTCONST
 	|	/* Empty */

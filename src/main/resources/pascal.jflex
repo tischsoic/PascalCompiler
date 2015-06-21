@@ -111,6 +111,7 @@ read			{ return symbol( READ ); }
 readln			{ return symbol( READLN ); }
 write			{ return symbol( WRITE ); }
 writeln			{ return symbol( WRITELN ); }
+uses      {return symbol( USES );}
 
 "("				{ return symbol( LEFT ); }
 ")"				{ return symbol( RIGHT ); }
