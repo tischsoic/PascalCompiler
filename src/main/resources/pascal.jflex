@@ -12,6 +12,8 @@ import java_cup.runtime.ComplexSymbolFactory.Location;
 %char
 %line
 %column
+%caseless
+
 
 %{
     StringBuffer string = new StringBuffer();
