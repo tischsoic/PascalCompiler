@@ -244,16 +244,17 @@ VarDecl::=
 
 VarDeclrList::=
 		/* Empty */
-	|	VarDeclrList SEMICOLON VarDeclr
+	|	VarDeclrList VarDeclr
 	;
 
 VarDeclr::=
-		IdentList COLON Type
+		IdentList COLON Type SEMICOLON
 	;
 
 IdentList::=
 		/* Empty */
-	|	IdentList COMMA IDENT
+	|	IDENT
+	|	IdentList COMMA IDENT 
 	;
 
 ProcedureAndFunctionDeclarationPart::=
