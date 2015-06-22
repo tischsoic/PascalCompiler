@@ -1,4 +1,4 @@
-package grammar;
+
 
 import java_cup.runtime.Symbol;
 import java_cup.runtime.ComplexSymbolFactory;
@@ -117,31 +117,31 @@ write			{ return symbol( WRITE ); }
 writeln			{ return symbol( WRITELN ); }
 uses            { return symbol( USES );}
 
-"("				{ return symbol( LEFT ); }
-")"				{ return symbol( RIGHT ); }
-"["				{ return symbol( LEFTSQ ); }
-"]"				{ return symbol( RIGHTSQ ); }
+"("				{ return symbol("left",LEFT,"LEFT" ); }
+")"				{ return symbol("right",RIGHT,"RIGHT" ); }
+"["				{ return symbol("leftsq",LEFTSQ,"LEFTSQ" ); }
+"]"				{ return symbol("rightsq",RIGHTSQ,"RIGHTSQ"); }
 
-":"				{ return symbol( COLON ); }
-";"				{ return symbol( SEMICOLON ); }
-","				{ return symbol( COMMA ); }
-"."				{ return symbol( DOT ); }
-".."			{ return symbol( DOTDOT ); }
-"^"				{ return symbol( PTR ); }
+":"				{ return symbol("colon",COLON, "COLON" ); }
+";"				{ return symbol("semicolon",SEMICOLON, "SEMICOLON"); }
+","				{ return symbol("comma",COMMA,"COMMA"); }
+"."				{ return symbol("dot",DOT, "DOT" ); }
+".."			{ return symbol("dotdot", DOTDOT, "DOTDOT"); }
+"^"				{ return symbol("ptr" ,PTR, "PTR" ); }
 
-":="			{ return symbol( ASSIGN ); }
+":="			{ return symbol( "assign",ASSIGN,"ASSIGN" ); }
 
-"+"				{ return symbol( PLUS ); }
-"-"				{ return symbol( MINUS ); }
-"*"				{ return symbol( TIMES ); }
-"/"				{ return symbol( DIVIDE ); }
+"+"				{ return symbol("plus",PLUS,"PLUS" ); }
+"-"				{ return symbol("minus",MINUS,"MINUS" ); }
+"*"				{ return symbol("times",TIMES,"TIMES" ); }
+"/"				{ return symbol("divide", DIVIDE,"DIVIDE" ); }
 
-"="				{ return symbol( EQ ); }
-"<>"			{ return symbol( NE ); }
-"<"				{ return symbol( LT ); }
-">"				{ return symbol( GT ); }
-"<="			{ return symbol( LE ); }
-">="			{ return symbol( GE ); }
+"="				{ return symbol( "equals",EQ,"EQ" ); }
+"<>"			{ return symbol("ne",NE, "NE" ); }
+"<"				{ return symbol("lt", LT, "LT" ); }
+">"				{ return symbol("gt", GT,"GT" ); }
+"<="			{ return symbol("le", LE,"LE" ); }
+">="			{ return symbol("ge", GE,"GE" ); }
 
 true			{ return symbol( "Boolean", BOOLCONST, Boolean.parseBoolean(yytext()) ); }
 false			{ return symbol( "Boolean", BOOLCONST, Boolean.parseBoolean(yytext()) ); }
@@ -164,3 +164,4 @@ false			{ return symbol( "Boolean", BOOLCONST, Boolean.parseBoolean(yytext()) );
 <<EOF>>			{ return symbol( EOF ); }
 
 }
+
