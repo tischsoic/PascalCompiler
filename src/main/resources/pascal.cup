@@ -407,7 +407,7 @@ Element::=
 	;
 
 StatementPart::=
-		Begin StmtList:stmt_list END
+		BEGIN StmtList:stmt_list END
 	;
 
 StmtList::=
