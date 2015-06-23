@@ -27,7 +27,7 @@ terminal Double REALCONST;
 terminal Character CHARCONST;
 terminal String STRINGCONST;
 
-non terminal File, Program, Module, ProgramHeading, Block, LabelDeclarationPart, LabelList, LabelDeclaration, ConstantDeclarationPart, Extern;
+non terminal File, Program, Module, ProgramHeading, Block, PFBlock, LabelDeclarationPart, LabelList, LabelDeclaration, ConstantDeclarationPart, Extern;
 non terminal ConstDeclarationList, ConstDeclr, ConstantList, Constant, TypeDefinitionPart, TypeDecl, TypeDeclrList;
 non terminal TypeDeclr, Type, SimpleType, ScalarType, SubrangeType, StructuredType, UnpackedType, ArrayType, SimpleTypeList;
 non terminal RecordType, FieldList, FieldDeclList, FieldDecl, VariantFields, VariantList, Variant, SetType, FileType;
@@ -148,7 +148,7 @@ Type::=
 	;
 	
 SimpleType::=
-		IDENT:identifier
+		IDENT:type
 	|	ScalarType:scalar_type
 	|	SubrangeType:subrange_type
 	;
@@ -258,12 +258,20 @@ ProcedureAndFunctionDeclarationPart::=
 	|	ProcedureAndFunctionDeclarationPart:proc_fun_decl_part FuncDeclr:fun_decl SEMICOLON
 	;
 
+PFBlock::=
+		LabelDeclarationPart:label_decl_part
+		ConstantDeclarationPart:constant_decl_part
+		TypeDefinitionPart:type_def_part
+		VariableDeclarationPart:var_decl_part
+		StatementPart:stmt_part
+	;
+
 ProcDeclr::=
-		ProcHeader:proc_header Block:block
+		ProcHeader:proc_header PFBlock:pfblock
 	;
 
 FuncDeclr::=
-		FuncHeader:fun_header Block:block
+		FuncHeader:fun_header PFBlock:pfblock
 	;
 
 ProcHeader::=
@@ -299,16 +307,16 @@ UnlabelledStmt::=
 	;
 
 SimpleStmt::=
-		Variable:var ASSIGN Expr:expr
+		Variable:var ASSIGN:op Expr:expr
 	|	Invocation:invoc
-	|	WRITE LEFT WriteExprList:write_expr_list RIGHT
-	|	WRITELN LEFT WriteExprList:write_expr_list RIGHT
-	|	READLN LEFT Variable:var RIGHT
-	|	READ LEFT Variable:var RIGHT
-	|	READLN
-	|	READ
-	|	WRITELN
-	|	WRITE
+	|	WRITE:write LEFT WriteExprList:write_expr_list RIGHT
+	|	WRITELN:writeln LEFT WriteExprList:write_expr_list RIGHT
+	|	READLN:readln LEFT Variable:var RIGHT
+	|	READ:read LEFT Variable:var RIGHT
+	|	READLN:readln
+	|	READ:read
+	|	WRITELN:writeln
+	|	WRITE:write
 	|	IDENT:identifier
 	|	GOTO INTCONST:int_constant
 	|	/* Empty */
@@ -357,20 +365,20 @@ Expr::=
 
 SimpleExpr::=
 		Term:term
-	|	PLUS Term:term
-	|	MINUS Term:term
-	|	SimpleExpr:simple_expr PLUS Term:term
-	|	SimpleExpr:simple_expr MINUS Term:term
-	|	SimpleExpr:simple_expr OR Term:term
+	|	PLUS:op Term:term
+	|	MINUS:op Term:term
+	|	SimpleExpr:simple_expr PLUS:op Term:term
+	|	SimpleExpr:simple_expr MINUS:op Term:term
+	|	SimpleExpr:simple_expr OR:op Term:term
 	;
 
 Term::=
 		Factor:factor
-	|	Term:term TIMES Factor:factor
-	|	Term:term DIVIDE Factor:factor
-	|	Term:term DIV Factor:factor
-	|	Term:term MOD Factor:factor
-	|	Term:term AND Factor:factor
+	|	Term:term TIMES:op Factor:factor
+	|	Term:term DIVIDE:op Factor:factor
+	|	Term:term DIV:op Factor:factor
+	|	Term:term MOD:op Factor:factor
+	|	Term:term AND:op Factor:factor
 	;
 
 Factor::=
