@@ -1,0 +1,528 @@
+/* Minijava Grammar */
+import java_cup.runtime.ComplexSymbolFactory;
+import java_cup.runtime.ScannerBuffer;
+import java_cup.runtime.XMLElement;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamWriter;
+import java.io.*;
+
+import javax.xml.transform.*;
+import javax.xml.transform.stream.*;
+
+parser code {:
+  public Parser(Lexer lex,ComplexSymbolFactory sf) {
+    super(lex,sf);
+    }
+:};
+
+
+terminal AND, ARRAY, BEGIN, CASE, CONST, DIV, DO, DOWNTO, ELSE, END, FILE, FOR, FUNCTION, GOTO, IF, IN;
+terminal LABEL, MOD, NIL, NOT, OF, OR, PACKED, PROCEDURE, PROGRAM, RECORD, REPEAT, SET, THEN, TO, TYPE, USES;
+terminal UNTIL, VAR, WHILE, WITH, ASSIGN, PLUS, MINUS, TIMES, DIVIDE, EQ, NE, LT, GT, LE, GE, DOT, LEFT;
+terminal RIGHT, COMMA, SEMICOLON, COLON, DOTDOT, LEFTSQ, RIGHTSQ, PTR;
+terminal READLN, READ, WRITE, WRITELN;
+terminal String IDENT;
+terminal Boolean BOOLCONST;
+terminal Integer INTCONST;
+terminal Double REALCONST;
+terminal Character CHARCONST;
+terminal String STRINGCONST;
+
+non terminal node File;
+non terminal node Program;
+non terminal node Module;
+non terminal node ProgramHeading; 
+non terminal node Block; 
+non terminal node  PFBlock;
+non terminal node  LabelDeclarationPart;
+non terminal node  LabelList;
+non terminal node  LabelDeclaration;
+non terminal node  ConstantDeclarationPart;
+ non terminal node  Extern;
+non terminal node ConstDeclarationList;
+ non terminal node  ConstDeclr;
+ non terminal node  ConstantList;
+ non terminal node  Constant;
+ non terminal node  TypeDefinitionPart;
+ non terminal node  TypeDecl;
+ non terminal node  TypeDeclrList;
+non terminal node TypeDeclr;
+ non terminal node  Type;
+ non terminal node  SimpleType;
+ non terminal node  ScalarType;
+ non terminal node  SubrangeType;
+ non terminal node  StructuredType;
+ non terminal node  UnpackedType;
+ non terminal node  ArrayType;
+ non terminal node  SimpleTypeList;
+non terminal node RecordType;
+non terminal node  FieldList;
+ non terminal node  FieldDeclList;
+ non terminal node  FieldDecl;
+ non terminal node  VariantFields;
+ non terminal node  VariantList;
+ non terminal node  Variant;
+ non terminal node  SetType;
+ non terminal node  FileType;
+non terminal node PointerType;
+ non terminal node  VariableDeclarationPart;
+ non terminal node  VarDecl;
+ non terminal node  VarDeclrList;
+ non terminal node  VarDeclr;
+ non terminal node  IdentList;
+ non terminal node  ProcedureAndFunctionDeclarationPart;
+ non terminal node  ProcDeclr;
+ non terminal node  FuncDeclr;
+non terminal node ProcHeader;
+ non terminal node  FuncHeader;
+ non terminal node  FormalParamDeclList;
+ non terminal node  FormalParamDecl;
+ non terminal node  Stmt;
+ non terminal node  UnlabelledStmt;
+ non terminal node  SimpleStmt;
+ non terminal node  StructuredStmt;
+non terminal node Variable;
+ non terminal node  WriteExprList;
+ non terminal node  ExprList;
+ non terminal node  WriteExpr;
+ non terminal node  Expr;
+ non terminal node  SimpleExpr;
+ non terminal node  Term;
+ non terminal node  Factor;
+ non terminal node  Invocation;
+ non terminal node  Set;
+ non terminal node  ElementList;
+non terminal node Element;
+non terminal node  StatementPart;
+non terminal node  StmtList;
+non terminal node  ConditionalStmt;
+ non terminal node  CaseStmtList;
+ non terminal node  CaseStmt;
+ non terminal node  LoopStmt;
+ non terminal node  WithStmt;
+ non terminal node  VariableList;
+
+
+
+
+precedence nonassoc ELSE;
+
+File ::=
+        Program:prog {: RESULT = new node(prog,null,"START","start"); :}
+    |   Module:mod
+    ;
+
+Module ::=
+        ConstantDeclarationPart:constant_decl_part
+        TypeDefinitionPart:type_def_part
+        VariableDeclarationPart:var_decl_part
+        ProcedureAndFunctionDeclarationPart:proc_fun_decl_part
+    ;
+
+Program ::=
+		ProgramHeading:prog_head Block:block DOT {: RESULT = new node(prog_head,block,"PROGRAM","prog"); :}
+	;
+
+ProgramHeading::=
+        PROGRAM IDENT:identifier SEMICOLON {: RESULT = new node("PROG_NAME",identifier); :}
+	|   PROGRAM IDENT:identifier LEFT IdentList:ident_list RIGHT SEMICOLON
+	;
+
+Block::=
+		Extern:ext
+		LabelDeclarationPart:label_decl_part
+		ConstantDeclarationPart:constant_decl_part
+		TypeDefinitionPart:type_def_part
+		VariableDeclarationPart:var_decl_part
+		ProcedureAndFunctionDeclarationPart:proc_fun_decl_part
+		StatementPart:stmt_part {: RESULT = new node(stmt_part, null,"MAIN","main"); :}
+	;
+
+/* Blok "uses" */
+Extern::=
+		/* Empty */
+	|	USES IdentList:ident_list SEMICOLON
+	;
+
+LabelDeclarationPart::=
+		/* Empty */
+	|	LABEL LabelList:label_list SEMICOLON
+	;
+
+LabelList::=
+		LabelDeclaration:label_decl
+	|	LabelList:label_list COMMA LabelDeclaration:label_decl
+	;
+
+LabelDeclaration::=
+		INTCONST:int_constant
+	;
+
+ConstantDeclarationPart::=
+		/* Empty */
+	|	CONST ConstDeclarationList:constant_decl_list
+	;
+
+ConstDeclarationList::=
+		ConstDeclr:constant_decl
+	|	ConstDeclarationList:constant_decl_lsit ConstDeclr:constant_decl
+	;
+
+ConstDeclr::=
+		IDENT:identifier EQ:op Constant:constant SEMICOLON
+	;
+
+ConstantList::=
+		Constant:constant
+	|	ConstantList:constant_list COMMA Constant:constant
+	;
+
+Constant::=
+		INTCONST:int_constant
+	|	PLUS INTCONST:plus_int_constant
+	|	MINUS INTCONST:minus_int_constant
+	|	REALCONST:real_conts
+	|	PLUS REALCONST:plus_real_constant
+	|	MINUS REALCONST:minus_real_constant
+	|	IDENT:identifier
+	|	PLUS IDENT:plus_identifier
+	|	MINUS IDENT:minus_identifier
+	|	STRINGCONST:string_constant
+	;
+
+TypeDefinitionPart::=
+		/* Empty */
+	|	TypeDecl:type_decl
+	;
+
+TypeDecl::=
+		TYPE TypeDeclrList:type_decl_list SEMICOLON
+	;
+
+TypeDeclrList::=
+		TypeDeclr:type_decl
+	|	TypeDeclrList:type_decl_list SEMICOLON TypeDeclr:type_decl
+	;
+
+TypeDeclr::=
+		IDENT:identifier EQ:op Type:type
+	|	IDENT:identifier EQ:op Type:type LEFTSQ IDENT:identifier1 RIGHTSQ
+	|	IDENT:identifier EQ:op Type:type LEFTSQ SubrangeType:subrange_type RIGHTSQ
+	;
+
+Type::=
+		SimpleType:simple_type
+	|	StructuredType:struct_type
+	|	PointerType:ptr_type
+	;
+
+SimpleType::=
+		IDENT:type
+	|	ScalarType:scalar_type
+	|	SubrangeType:subrange_type
+	;
+
+ScalarType::=
+		LEFT IdentList:ident_list RIGHT
+	;
+
+SubrangeType::=
+		Constant:constant DOTDOT Constant:constant1
+	;
+
+StructuredType::=
+		UnpackedType:unpkg_type
+	|	PACKED UnpackedType:unpkg_type
+	;
+
+UnpackedType::=
+		ArrayType:array_type
+	|	RecordType:record_type
+	|	SetType:set_type
+	|	FileType:file_type
+	;
+
+ArrayType::=
+		ARRAY LEFTSQ SimpleTypeList:simple_type_list RIGHTSQ OF Type:type
+	;
+
+SimpleTypeList::=
+		SimpleType:simple_type
+	|	SimpleTypeList:simple_type COMMA SimpleType:simple_type1
+	;
+
+RecordType::=
+		RECORD FieldList:field_list END
+	;
+
+FieldList::=
+		FieldDeclList:field_decl_list
+	|	FieldDeclList:field_decl_list SEMICOLON VariantFields:variant_fields
+	;
+
+FieldDeclList::=
+		/* Empty */
+	|	FieldDeclList:field_decl_list SEMICOLON FieldDecl:field_decl
+	;
+
+FieldDecl::=
+		/* Empty */
+	|	IdentList:ident_list COLON Type:type
+	;
+
+VariantFields::=
+		CASE IDENT:identifier COLON IDENT:identifier1 OF VariantList:variant_list
+	|   CASE IDENT:identifier OF VariantList:variant_list
+	;
+
+VariantList::=
+		Variant:variant
+	|   VariantList:variant_list SEMICOLON Variant:variant
+	;
+
+Variant::=
+		/* Empty */
+	|	ConstantList:constant_list COLON LEFT FieldList:field_list RIGHT
+	;
+
+SetType::=
+		SET OF SimpleType:simple_type
+	;
+
+FileType::=
+		FILE OF Type:type
+	;
+
+PointerType::=
+		PTR IDENT:identifier
+	;
+
+VariableDeclarationPart::=
+		/* Empty */
+	|	VarDecl:var_decl
+	;
+
+VarDecl::=
+		VAR VarDeclrList:vdl
+	;
+
+VarDeclrList::=
+		/* Empty */
+	|	VarDeclrList:var_decl_list VarDeclr:var_decl
+	;
+
+VarDeclr::=
+		IdentList:ident_list COLON Type:type SEMICOLON
+	;
+
+IdentList::=
+		/* Empty */
+		IDENT:identifier
+	|	IdentList:ident_list COMMA IDENT:identifier
+	;
+
+ProcedureAndFunctionDeclarationPart::=
+		/* Empty */
+	|	ProcedureAndFunctionDeclarationPart:proc_fun_decl_part ProcDeclr:proc_decl SEMICOLON
+	|	ProcedureAndFunctionDeclarationPart:proc_fun_decl_part FuncDeclr:fun_decl SEMICOLON
+	;
+
+PFBlock::=
+		LabelDeclarationPart:label_decl_part
+		ConstantDeclarationPart:constant_decl_part
+		TypeDefinitionPart:type_def_part
+		VariableDeclarationPart:var_decl_part
+		StatementPart:stmt_part
+	;
+
+ProcDeclr::=
+		ProcHeader:proc_header PFBlock:pfblock
+	;
+
+FuncDeclr::=
+		FuncHeader:fun_header PFBlock:pfblock
+	;
+
+ProcHeader::=
+		PROCEDURE IDENT:identifier SEMICOLON
+	|	PROCEDURE IDENT:identifier LEFT FormalParamDeclList:formal_param_decl_list RIGHT SEMICOLON
+	;
+
+FuncHeader::=
+		FUNCTION IDENT:identifier COLON IDENT:identifier1 SEMICOLON
+	|	FUNCTION IDENT:identifier LEFT FormalParamDeclList:formal_param_decl_list RIGHT COLON IDENT:identifier1 SEMICOLON
+	;
+
+FormalParamDeclList::=
+		FormalParamDecl:formal_param_decl
+	|	FormalParamDeclList:formal_param_decl_list SEMICOLON FormalParamDecl:formal_param_decl
+	;
+
+FormalParamDecl::=
+		VAR IdentList:ident_list COLON Type:type
+	|	IdentList:ident_list COLON Type:type
+	|	FUNCTION IdentList:ident_list COLON Type:type
+	|	PROCEDURE IdentList:ident_list
+	;
+
+Stmt::=
+		UnlabelledStmt:unlabel_stmt {: RESULT = new node(unlabel_stmt,null,"UNLABELLED","unlabelled"); :} 
+	|	INTCONST:int_constant COLON UnlabelledStmt:unlabel_stmt
+	;
+
+UnlabelledStmt::=
+		SimpleStmt:simple_stmt {: RESULT = new node(simple_stmt, null, "SIMPLE","simple"); :}
+	|	StructuredStmt:struct_stmt
+	;
+
+SimpleStmt::=
+		Variable:var ASSIGN:op Expr:expr
+	|	Invocation:invoc
+	|	WRITE:write LEFT WriteExprList:write_expr_list RIGHT 
+	|	WRITELN:writeln LEFT WriteExprList:write_expr_list RIGHT {: RESULT = new node(write_expr_list,null,"WRITELN","writeln"); :}
+	|	READLN:readln LEFT Variable:var RIGHT
+	|	READ:read LEFT Variable:var RIGHT
+	|	READLN:readln
+	|	READ:read
+	|	WRITELN:writeln
+	|	WRITE:write
+	|	IDENT:identifier
+	|	GOTO INTCONST:int_constant
+	|	/* Empty */
+	;
+
+StructuredStmt::=
+		StatementPart:stmt_part
+	|	ConditionalStmt:cont_stmt
+	|	LoopStmt:loop_stmt
+	|	WithStmt:with_stmt
+	;
+
+Variable::=
+		IDENT:identifier
+	|	Variable:var LEFTSQ ExprList:expr_list RIGHTSQ
+	|	Variable:var DOT IDENT:identifier
+	|	Variable:var PTR
+	;
+
+WriteExprList::=
+		WriteExpr:write_expr  {: RESULT = new node(write_expr,null,"WEXPRL","wexprl"); :}
+	|	WriteExprList:write_expr_list COMMA WriteExpr:write_expr
+	;
+
+WriteExpr::=
+		Expr:expr {: RESULT = new node(expr,null,"WEXPR","wexpr"); :}
+	|	Expr:expr COLON Expr:expr1 
+	|	Expr:expr COLON Expr:expr1 COLON Expr:expr2
+	;
+
+ExprList::=
+		Expr:expr {: RESULT = new node(expr,null,"EXPRL","exprl"); :}
+	|	ExprList:expr_list COMMA Expr:expr
+	;
+
+Expr::=
+		SimpleExpr:simple_expr	{: RESULT = new node(simple_expr,null,"EXPR","expr"); :}
+	|	SimpleExpr:simple_expr EQ SimpleExpr:simple_expr1
+	|	SimpleExpr:simple_expr NE SimpleExpr:simple_expr1
+	|	SimpleExpr:simple_expr LT SimpleExpr:simple_expr1
+	|	SimpleExpr:simple_expr LE SimpleExpr:simple_expr1
+	|	SimpleExpr:simple_expr GT SimpleExpr:simple_expr1
+	|	SimpleExpr:simple_expr GE SimpleExpr:simple_expr1
+	|	SimpleExpr:simple_expr IN SimpleExpr:simple_expr1
+	;
+
+SimpleExpr::=
+		Term:term {: RESULT = new node(term,null,"SIMPLEEXPR","simple_expr"); :}
+	|	PLUS:op Term:term
+	|	MINUS:op Term:term
+	|	SimpleExpr:simple_expr PLUS:op Term:term
+	|	SimpleExpr:simple_expr MINUS:op Term:term
+	|	SimpleExpr:simple_expr OR:op Term:term
+	;
+
+Term::=
+		Factor:factor{: RESULT = new node(factor,null,"TERM","term"); :}
+	|	Term:term TIMES:op Factor:factor
+	|	Term:term DIVIDE:op Factor:factor
+	|	Term:term DIV:op Factor:factor
+	|	Term:term MOD:op Factor:factor
+	|	Term:term AND:op Factor:factor
+	;
+
+Factor::=
+		Variable:var
+	|	BOOLCONST:bool_constant
+	|	INTCONST:int_constant
+	|	REALCONST:real_cont
+	|	CHARCONST:char_constant
+	|	STRINGCONST:string_constant {: RESULT = new node(string_constant,"string"); :}
+	|	NIL:nil
+	|	LEFT Expr:expr RIGHT
+	|	Invocation:invoc
+	|	Set:set
+	|	NOT Factor:factor
+	;
+
+Invocation::=
+		IDENT:identifier LEFT ExprList:expr_list RIGHT
+	;
+
+Set::=
+		LEFTSQ ElementList:elem_list RIGHTSQ
+	|	LEFTSQ RIGHTSQ
+	;
+
+ElementList::=
+		Element:elem
+	|	ElementList:elem_list COMMA Element:elem
+	;
+
+Element::=
+		Expr:expr
+	|	Expr:expr DOTDOT Expr:expr1
+	;
+
+StatementPart::=
+		BEGIN StmtList:stmt_list END {: RESULT = new node(stmt_list,null,"BODY","body"); :}
+	;
+
+StmtList::=
+		Stmt:stmt {: RESULT = new node(stmt,null,"STATEMENT","statement"); :}
+	|	StmtList:stmt_list SEMICOLON Stmt:stmt {: RESULT = new node(stmt,stmt_list,"STATEMENT", "statement"); :}
+	;
+
+ConditionalStmt::=
+		IF Expr:expr THEN Stmt:stmt
+	|	IF Expr:expr THEN Stmt:stmt ELSE Stmt:stmt1
+	|	CASE Expr:expr OF CaseStmtList:case_stmt_list END
+	;
+
+CaseStmtList::=
+		CaseStmt:case_stmt
+	|	CaseStmtList:case_stmt_list SEMICOLON CaseStmt:case_stmt
+	;
+
+CaseStmt::=
+		/* empty */
+	|	ConstantList:constant_list COLON Stmt:stmt
+	;
+
+LoopStmt::=
+		WHILE Expr:expr DO Stmt:stmt
+	|	REPEAT StmtList:stmt_list UNTIL Expr:expr
+	|	FOR IDENT:identifier ASSIGN Expr:expr TO Expr:expr1 DO Stmt:stmt
+	|	FOR IDENT:identifier ASSIGN Expr:expr DOWNTO Expr:expr1 DO Stmt:stmt
+	;
+
+
+WithStmt::=
+		WITH VariableList:var_list DO Stmt:stmt
+	;
+
+VariableList::=
+		Variable:var
+	|	VariableList:var_list COMMA Variable:var
+	;
+
+
