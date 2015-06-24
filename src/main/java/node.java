@@ -10,7 +10,7 @@ public class node {
     //Konstruktor dla cup'a
     public node(node child, node next, String val, String id){
         this.child = child;
-        this. next = next;
+        this.next = next;
         this.id = id;
         this.val = val;
     }

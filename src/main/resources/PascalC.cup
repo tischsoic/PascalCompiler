@@ -101,6 +101,11 @@ non terminal node  ConditionalStmt;
  non terminal node  LoopStmt;
  non terminal node  WithStmt;
  non terminal node  VariableList;
+non terminal node	LabelBlock;
+non terminal node	VarBlock;
+non terminal node TypeBlock;
+non terminal node	ProcBlock;
+non terminal node ConstantBlock;
 
 
 
@@ -128,15 +133,32 @@ ProgramHeading::=
 	|   PROGRAM IDENT:identifier LEFT IdentList:ident_list RIGHT SEMICOLON
 	;
 
+
 Block::=
-		Extern:ext
-		LabelDeclarationPart:label_decl_part
-		ConstantDeclarationPart:constant_decl_part
-		TypeDefinitionPart:type_def_part
-		VariableDeclarationPart:var_decl_part
-		ProcedureAndFunctionDeclarationPart:proc_fun_decl_part
-		StatementPart:stmt_part {: RESULT = new node(stmt_part, null,"MAIN","main"); :}
+		Extern:ext LabelBlock:lbl {: RESULT = new node(ext,lbl,"BLOCK","block"); :}
+		;
+
+LabelBlock ::=
+	 LabelDeclarationPart:label_decl_part ConstantBlock:cbl {: RESULT = new node(label_decl_part,cbl,"LBLOCK","lblock"); :}
+		;
+
+ConstantBlock::=
+	ConstantDeclarationPart:constant_decl_part TypeBlock:tbl {: RESULT = new node(constant_decl_part,tbl,"CBLOCK","cblock"); :}
 	;
+
+TypeBlock::=
+	TypeDefinitionPart:type_def_part VarBlock:vbl {: RESULT = new node(type_def_part,vbl,"TBLOCK","tblock"); :}
+	;
+
+VarBlock::=
+	VariableDeclarationPart:var_decl_part ProcBlock:pbl {: RESULT = new node(var_decl_part,pbl,"VBLOCK","vblock"); :}
+	;
+
+ProcBlock::=
+	ProcedureAndFunctionDeclarationPart:proc_fun_decl_part  StatementPart:stmt_part {: RESULT = new node(proc_fun_decl_part,stmt_part,"PBLOCK","pblock"); :}
+	;
+
+
 
 /* Blok "uses" */
 Extern::=
@@ -376,19 +398,19 @@ UnlabelledStmt::=
 	;
 
 SimpleStmt::=
-		Variable:var ASSIGN:op Expr:expr
-	|	Invocation:invoc
-	|	WRITE:write LEFT WriteExprList:write_expr_list RIGHT 
+		Variable:var ASSIGN:op Expr:expr  {: RESULT = new node(var,expr,"ASSIGN","assign"); :}
+	|	WRITE:write LEFT WriteExprList:write_expr_list RIGHT  {: RESULT = new node(write_expr_list,null,"WRITE","write"); :}
 	|	WRITELN:writeln LEFT WriteExprList:write_expr_list RIGHT {: RESULT = new node(write_expr_list,null,"WRITELN","writeln"); :}
-	|	READLN:readln LEFT Variable:var RIGHT
-	|	READ:read LEFT Variable:var RIGHT
-	|	READLN:readln
-	|	READ:read
-	|	WRITELN:writeln
-	|	WRITE:write
-	|	IDENT:identifier
-	|	GOTO INTCONST:int_constant
-	|	/* Empty */
+	|	READLN:readln LEFT Variable:var RIGHT  {: RESULT = new node(var,null,"READLN","readln"); :}
+	|	READ:read LEFT Variable:var RIGHT  {: RESULT = new node(var,null,"READ","read"); :}
+	|	READLN:readln {: RESULT = new node(null,null,"EREADLN","ereadln"); :}
+	|	READ:read  {: RESULT = new node(null,null,"EREAD","eread"); :}
+	|	WRITELN:writeln {: RESULT = new node(null,null,"EWRITELN","ewriteln"); :}
+	|	WRITE:write  {: RESULT = new node(null,null,"EWRITE","ewrite"); :}
+	|	IDENT:identifier  {: RESULT = new node(null,null,identifier,"ident"); :}
+	|	GOTO INTCONST:int_constant {: RESULT = new node(null,null,Integer.toString(int_constant),"goto"); :}
+	|	Invocation:invoc {: RESULT = new node(invoc,null,"INVOC","invoc"); :}
+	|	/* Empty */ {: RESULT = new node(null,null,"NONE","none"); :}
 	;
 
 StructuredStmt::=
@@ -406,7 +428,7 @@ Variable::=
 	;
 
 WriteExprList::=
-		WriteExpr:write_expr  {: RESULT = new node(write_expr,null,"WEXPRL","wexprl"); :}
+		WriteExpr:write_expr  {: RESULT = new node(write_expr,null,"WEXPRl","wexprl"); :}
 	|	WriteExprList:write_expr_list COMMA WriteExpr:write_expr
 	;
 
